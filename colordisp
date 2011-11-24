@@ -3,6 +3,7 @@
 promptcolor="\033[31m"
 bannercolor="\033[32m"
 cmdcolor="\033[36m"
+commentcolor="\033[1;35m"
 sepcolor="\033[37m"
 nocolor="\033[0m"
 
@@ -18,7 +19,14 @@ done
 
 if [ "$flag" -eq 1 ]; then
     echo -e $sepcolor"----------------------------------------------------------------------"$nocolor
-    echo -e $promptcolor"$ "$nocolor$cmdcolor"$*"$nocolor
+    cmdall="$*"
+    cmd=${cmdall%%#*}
+    comment=${cmdall##*#}
+    if [ "$cmdall" == "$cmd" ]; then
+	echo -e $promptcolor"$ "$nocolor$cmdcolor"$cmd"$nocolor
+    else
+	echo -e $promptcolor"$ "$nocolor$cmdcolor"$cmd"$commentcolor"#$comment"$nocolor
+    fi
 else
     if [ "${line:0:2}" == "##" ] || [ "${line:0:2}" == "==" ]; then
         echo -e $bannercolor"$*"$nocolor
