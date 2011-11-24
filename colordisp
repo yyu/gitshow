@@ -1,0 +1,30 @@
+#!/bin/bash
+
+promptcolor="\033[31m"
+bannercolor="\033[32m"
+cmdcolor="\033[36m"
+sepcolor="\033[37m"
+nocolor="\033[0m"
+
+line=$*
+firstword=`echo $line | awk -F " " '{print $1}'`
+
+flag=0
+for w in /bin/rm git echo touch cd; do
+    if [ "$firstword" == "$w" ]; then
+	flag=1
+    fi
+done
+
+if [ "$flag" -eq 1 ]; then
+    echo -e $sepcolor"----------------------------------------------------------------------"$nocolor
+    echo -e $promptcolor"$ "$nocolor$cmdcolor"$*"$nocolor
+else
+    if [ "${line:0:5}" == "#####" ] || [ "${line:0:5}" == "=====" ]; then
+        echo -e $bannercolor"$*"$nocolor
+    else
+        echo $*
+    fi
+fi
+
+
