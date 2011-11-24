@@ -10,7 +10,7 @@ line=$*
 firstword=`echo $line | awk -F " " '{print $1}'`
 
 flag=0
-for w in /bin/rm git echo touch cd; do
+for w in /bin/rm git echo touch cd cp diff; do
     if [ "$firstword" == "$w" ]; then
 	flag=1
     fi
@@ -20,7 +20,7 @@ if [ "$flag" -eq 1 ]; then
     echo -e $sepcolor"----------------------------------------------------------------------"$nocolor
     echo -e $promptcolor"$ "$nocolor$cmdcolor"$*"$nocolor
 else
-    if [ "${line:0:5}" == "#####" ] || [ "${line:0:5}" == "=====" ]; then
+    if [ "${line:0:2}" == "##" ] || [ "${line:0:2}" == "==" ]; then
         echo -e $bannercolor"$*"$nocolor
     else
         echo $*
