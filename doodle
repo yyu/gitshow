@@ -50,7 +50,7 @@ dood() {
 dood "######################################################################"
 
 dood "/bin/rm -rf remote/"
-dood "/bin/rm -rf local/.git local/foo.txt"
+dood "/bin/rm -rf local/.git local/foo.txt local/bar.txt local/baz.txt"
 
 dood "mkdir remote"
 dood "git init --bare remote/doodle.git"
@@ -103,23 +103,23 @@ dood "git log --pretty=oneline"
 
 dood "diff -r ../remote/`cat /tmp/gitdoodle.bakname` ../remote/doodle.git       # difference before and after push&unpush"
 
-echo doodle.git.`git log --pretty=oneline | head -n 1 | cut -c1-7`-`head -c10 /dev/urandom | sha1sum | head -c 3` > /tmp/gitdoodle.bakname
-dood "cp -r ../remote/doodle.git ../remote/`cat /tmp/gitdoodle.bakname`"
+# echo doodle.git.`git log --pretty=oneline | head -n 1 | cut -c1-7`-`head -c10 /dev/urandom | sha1sum | head -c 3` > /tmp/gitdoodle.bakname
+# dood "cp -r ../remote/doodle.git ../remote/`cat /tmp/gitdoodle.bakname`"
 
-dood "echo This line is supposed to be a bad line in a bad commit-and-push to be undone. >> foo.txt         # modify foo.txt"
-dood "cat foo.txt"
-dood "git add foo.txt"
+# dood "echo This line is supposed to be a bad line in a bad commit-and-push to be undone. >> foo.txt         # modify foo.txt"
+# dood "cat foo.txt"
+# dood "git add foo.txt"
 
-dood "git commit -m bad                                                   # commit bad"
-dood "git push                                                            # push"
-dood "git log --pretty=oneline"
+# dood "git commit -m bad                                                   # commit bad"
+# dood "git push                                                            # push"
+# dood "git log --pretty=oneline"
 
-dood "git rebase -i HEAD~2                                                # delete the 2nd line in the editor"
-dood "git push origin +master                                             # undo push"
-dood "git st"
-dood "git log --pretty=oneline"
+# dood "git rebase -i HEAD~2                                                # delete the 2nd line in the editor"
+# dood "git push origin +master                                             # undo push"
+# dood "git st"
+# dood "git log --pretty=oneline"
 
-dood "diff -r ../remote/`cat /tmp/gitdoodle.bakname` ../remote/doodle.git       # difference before and after push&unpush"
+# dood "diff -r ../remote/`cat /tmp/gitdoodle.bakname` ../remote/doodle.git       # difference before and after push&unpush"
 
 dood "echo c >> foo.txt                                                   # modify foo.txt"
 dood "cat foo.txt"
@@ -134,6 +134,77 @@ dood "git commit -m d                                                     # comm
 dood "git push                                                            # push"
 
 dood "git log --pretty=oneline"
+
+################################################################################
+# manipulate branches
+
+dood "git checkout -b bar                                                 # swith to a new branch 'bar' (== git branch bar && git checkout bar)"
+
+dood "touch bar.txt                                                       # create bar.txt"
+dood "git add bar.txt"
+dood "git commit -m e                                                     # commit e"
+dood "echo a >> bar.txt                                                   # modify bar.txt"
+dood "git commit -a -m f                                                  # commit f"
+
+dood "git branch -v"
+dood "git log --oneline --graph --decorate --all"
+
+dood "git checkout master                                                 # switch to branch 'master'"
+dood "git branch -v"
+dood "git log --oneline --graph --decorate --all"
+
+dood "git checkout -b baz                                                 # switch to a new branch 'baz'"
+dood "touch baz.txt                                                       # create baz.txt"
+dood "git add baz.txt"
+dood "git commit -m g                                                     # commit g"
+dood "echo a >> baz.txt                                                   # modify baz.txt"
+dood "git commit -a -m h                                                  # commit h"
+
+dood "git branch -v"
+dood "git log --oneline --graph --decorate --all"
+
+dood "git checkout master                                                 # switch to branch 'master'"
+dood "git branch -v"
+dood "git log --oneline --graph --decorate --all"
+
+dood "git merge bar                                                       # merge bar"
+dood "git branch -d bar"
+
+dood "git checkout baz                                                    # switch to branch 'baz'"
+dood "echo b >> baz.txt                                                   # modify baz.txt"
+dood "git commit -a -m i                                                  # commit i"
+dood "git branch -v"
+dood "git log --oneline --graph --decorate --all"
+
+# dood "git merge master                                                    # merge master"
+# dood "git log --oneline --graph --decorate --all"
+
+dood "git checkout master                                                 # switch to branch 'master'"
+dood "git merge baz                                                       # merge baz"
+dood "git log --oneline --graph --decorate --all"
+
+dood "echo c >> baz.txt                                                   # modify baz.txt"
+dood "git commit -a -m j                                                  # commit j"
+
+dood "git checkout baz                                                    # switch to branch 'baz'"
+dood "echo d >> baz.txt                                                   # modify baz.txt"
+dood "git commit -a -m k                                                  # commit k"
+
+dood "git log --oneline --graph --decorate --all"
+
+dood "git checkout master                                                 # switch to branch 'master'"
+dood "git merge baz                                                       # merge baz"
+dood "git status"
+dood "/bin/rm baz.txt"
+dood "echo a >> baz.txt"
+dood "echo b >> baz.txt"
+dood "echo c >> baz.txt                                                   # solved conflicts in baz.txt"
+dood "git status"
+dood "git commit -a -m l                                                  # commit l"
+
+dood "git log --oneline --graph --decorate --all"
+
+dood "git push                                                            # push"
 
 dood "======================================================================"
 
