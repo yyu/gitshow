@@ -14,7 +14,7 @@ dood() {
     firstword=`echo $line | awk -F " " '{print $1}'`
 
     flag=0
-    for w in /bin/rm git pwd pushd popd echo touch cd cp diff mkdir cat; do
+    for w in /bin/rm git pwd pushd popd echo touch cd cp diff mkdir cat sed; do
 	if [ "$firstword" == "$w" ]; then
 	    flag=1
 	fi
@@ -33,30 +33,24 @@ dood() {
 	    echo -e $promptcolor"$ "$nocolor$cmdcolor"$cmd"$commentcolor"#$comment"$nocolor
 	fi
 
-	# handle redirection
-	cmd0=${cmd%%>*}
-	cmd1=${cmd##*>}
-	if [ "$cmd" == "$cmd0" ]; then
-	    $cmd
-	    # let's check the return value (note: ``diff'', ``git merge'' and ``git reset HEAD'' are excluded)
-	    retval=$?
-	    if [ $retval -ne 0 ]; then
-		echo -e $infocolor"\nCommand "$nocolor$errcolor$cmd$nocolor$infocolor"returns non-zero: "$nocolor$errcolor$retval$nocolor$infocolor"."$nocolor
-		#if [ "$firstword" == "diff" ] || [ "${line:0:9}" == "git merge" ]; then
-		if [ "$firstword" == "diff" ] || [ "${line:0:9}" == "git merge" ] || [ "${line:0:14}" == "git reset HEAD" ]; then
-		    echo -e $infocolor"It doesn't matter. Let's continue.\n"$nocolor
+	eval "$cmd"
+	# let's check the return value (note: ``diff'', ``git merge'', ``git reset HEAD'' and ``git rebase'' are excluded)
+	retval=$?
+	if [ $retval -ne 0 ]; then
+	    echo -e $infocolor"\nCommand "$nocolor$errcolor$cmd$nocolor$infocolor"returns non-zero: "$nocolor$errcolor$retval$nocolor$infocolor"."$nocolor
+	    #if [ "$firstword" == "diff" ] || [ "${line:0:9}" == "git merge" ]; then
+	    if [ "$firstword" == "diff" ] || [ "${line:0:9}" == "git merge" ] || [ "${line:0:14}" == "git reset HEAD" ] || [ "${line:0:10}" == "git rebase" ]; then
+		#echo -e $infocolor"It doesn't matter. Let's continue.\n"$nocolor
+		echo
+	    else
+		echo -n -e $infocolor"Press ! to quit, any other key to continue: "$nocolor
+		read ans
+		if [ "$ans" == "!" ]; then
+		    exit 100
 		else
-		    echo -n -e $infocolor"Press ! to quit, any other key to continue: "$nocolor
-		    read ans
-		    if [ "$ans" == "!" ]; then
-			exit 100
-		    else
-			echo -e $infocolor"OK, here we go.\n"$nocolor
-		    fi
+		    echo -e $infocolor"OK, here we go.\n"$nocolor
 		fi
 	    fi
-	else
-	    $cmd0 >> $cmd1
 	fi
     else
 	if [ "${line:0:2}" == "##" ] || [ "${line:0:2}" == "==" ]; then
@@ -115,13 +109,13 @@ dood "git log --pretty=oneline"
 git log --oneline -1 | cut -d' ' -f1 > /tmp/gitdoodle.bad
 
 dood "git push -f origin HEAD^:master                                     # undo push"
-dood "git st"
+dood "git status"
 dood "git log --pretty=oneline"
 
 dood "git branch"
 
 dood "git reset --hard HEAD^                                              # get back to previous commit (will lose working tree)"
-dood "git st"
+dood "git status"
 dood "git log --pretty=oneline"
 
 dood "diff -r ../remote/`cat /tmp/gitdoodle.bakname` ../remote/doodle.git       # difference before and after push&unpush"
@@ -149,7 +143,7 @@ dood "git checkout master                                                 # swit
 
 # dood "git rebase -i HEAD~2                                                # delete the 2nd line in the editor"
 # dood "git push origin +master                                             # undo push"
-# dood "git st"
+# dood "git status"
 # dood "git log --pretty=oneline"
 
 # dood "diff -r ../remote/`cat /tmp/gitdoodle.bakname` ../remote/doodle.git       # difference before and after push&unpush"
@@ -230,7 +224,7 @@ dood "git status"
 dood "/bin/rm baz.txt"
 dood "echo a >> baz.txt"
 dood "echo b >> baz.txt"
-dood "echo c >> baz.txt                                                   # solved conflicts in baz.txt"
+dood "echo c >> baz.txt                                                   # solve conflicts in baz.txt"
 dood "git status"
 dood "git commit -a -m l                                                  # commit l"
 
@@ -311,7 +305,7 @@ for opt in "--hard" "--soft"; do
 
     dood "echo $x >> foo.txt                                                   # modify foo.txt"
     dood "cat foo.txt"
-    dood "git commit -a -m $x                                                  # commit $x"
+    dood "git commit -a -m m-$x                                                # commit m-$x"
     dood "git log --oneline --graph --decorate --all"
 
     dood "git checkout `cat /tmp/gitdoodle.bad`                                                # the commit's undone, but it's not really gone"
@@ -325,6 +319,71 @@ for opt in "--hard" "--soft"; do
     dood "git checkout master                                                 # switch back to 'master'"
     dood "git log --oneline --graph --decorate --all"
 done
+
+dood "======================================================================"
+dood "## rebase"
+
+dood "git branch bar                                                      # new branch 'bar'"
+dood "git log --oneline --graph --decorate --all"
+
+dood "echo g >> foo.txt                                                   # modify foo.txt"
+dood "cat foo.txt"
+dood "git commit -a -m n                                                  # commit n"
+
+dood "git checkout bar                                                    # switch to 'bar'"
+dood "echo b >> bar.txt                                                   # modify bar.txt"
+dood "cat bar.txt"
+dood "git commit -a -m o                                                  # commit o"
+
+dood "git log --oneline --graph --decorate --all"
+
+dood "git rebase master                                                   # rebase (no conflict)"
+dood "git log --oneline --graph --decorate --all"
+
+dood "git checkout master                                                 # switch to 'master'"
+dood "git merge bar                                                       # fast-forward"
+dood "git log --oneline --graph --decorate --all"
+
+dood "=========================="
+dood "## rebasing with conflicts"
+
+dood "echo d >> baz.txt                                                   # modify baz.txt"
+dood "cat baz.txt"
+dood "git commit -a -m p                                                  # commit p"
+
+dood "git checkout bar                                                    # switch to 'bar'"
+dood "echo e >> baz.txt                                                   # modify baz.txt"
+dood "cat bar.txt"
+dood "git commit -a -m q                                                  # commit q"
+
+dood "git log --oneline --graph --decorate --all"
+dood "git rebase master bar                                               # rebase (with conflict)"
+dood "git rebase --abort                                                  # abort rebasing"
+dood "git status"
+
+dood "git log --oneline --graph --decorate --all"
+
+dood "git rebase master bar                                               # rebase (with conflict)"
+dood "git status"
+dood "cat baz.txt"
+dood "sed -e '/<<<<<<</d' -e '/>>>>>>>/d' -e '/=======/d' -i baz.txt      # solve conflicts"
+dood "cat baz.txt"
+dood "git add baz.txt                                                     # tell git that the conflict has been resolved"
+dood "git status"
+dood "git rebase --continue                                               # continue to rebase"
+dood "git status"
+
+dood "git checkout master                                                 # switch to 'master'"
+dood "git merge bar                                                       # fast-forward"
+
+dood "git log --oneline --graph --decorate --all"
+
+dood "git diff HEAD^^..HEAD^"
+dood "git diff HEAD^"
+
+dood "======================================================================"
+
+dood "git log --oneline --graph --decorate --all"
 
 dood "======================================================================"
 
