@@ -320,6 +320,16 @@ for opt in "--hard" "--soft"; do
     dood "git log --oneline --graph --decorate --all"
 done
 
+dood "##"
+dood "## Summary:"
+dood "##     if an object is commited:"
+dood "##         it'll be stored in local repos -- even if the commit is undone"
+dood "##         if it's pushed:"
+dood "##             it'll appear in remote repos -- even if the push is undone"
+dood "##         else:"
+dood "##             it will not appear in remote repos (GOOD NEWS)"
+dood "##"
+
 dood "======================================================================"
 dood "## rebase"
 
@@ -375,11 +385,23 @@ dood "git status"
 
 dood "git checkout master                                                 # switch to 'master'"
 dood "git merge bar                                                       # fast-forward"
+dood "git branch -d bar                                                   # delete branch 'bar'"
 
 dood "git log --oneline --graph --decorate --all"
 
 dood "git diff HEAD^^..HEAD^"
 dood "git diff HEAD^"
+
+dood "======================================================================"
+dood "## tools"
+
+dood "git reflog -30"
+dood "git show HEAD@{5}"
+dood "git show HEAD~5"
+
+dood "git log origin/master..HEAD"
+dood "git push"
+dood "git log origin/master..HEAD"
 
 dood "======================================================================"
 
