@@ -21,6 +21,8 @@ dood() {
 
     if [ "$flag" -eq 1 ]; then
 	echo -e $sepcolor"----------------------------------------------------------------------"$nocolor
+
+	# handle comments
 	cmdall="$*"
 	cmd=${cmdall%%#*}
 	comment=${cmdall##*#}
@@ -30,6 +32,7 @@ dood() {
 	    echo -e $promptcolor"$ "$nocolor$cmdcolor"$cmd"$commentcolor"#$comment"$nocolor
 	fi
 
+	# handle redirection
 	cmd0=${cmd%%>*}
 	cmd1=${cmd##*>}
 	if [ "$cmd" == "$cmd0" ]; then
@@ -167,17 +170,16 @@ dood "git checkout master                                                 # swit
 dood "git branch -v"
 dood "git log --oneline --graph --decorate --all"
 
-dood "git merge bar                                                       # merge bar"
-dood "git branch -d bar"
+dood "git merge bar                                                       # merge branch 'bar'"
+dood "git log --oneline --graph --decorate --all"
+dood "git branch -d bar                                                   # delete branch 'bar'"
+dood "git log --oneline --graph --decorate --all"
 
 dood "git checkout baz                                                    # switch to branch 'baz'"
 dood "echo b >> baz.txt                                                   # modify baz.txt"
 dood "git commit -a -m i                                                  # commit i"
 dood "git branch -v"
 dood "git log --oneline --graph --decorate --all"
-
-# dood "git merge master                                                    # merge master"
-# dood "git log --oneline --graph --decorate --all"
 
 dood "git checkout master                                                 # switch to branch 'master'"
 dood "git merge baz                                                       # merge baz"
@@ -204,7 +206,42 @@ dood "git commit -a -m l                                                  # comm
 
 dood "git log --oneline --graph --decorate --all"
 
-dood "git push                                                            # push"
+dood "git push                                                            # push 'master'"
+dood "git remote show origin                                              # peek remote"
+dood "git log --oneline --graph --decorate --all"
+
+dood "git push origin baz                                                 # push 'baz'"
+dood "git remote show origin                                              # peek remote"
+dood "git log --oneline --graph --decorate --all"
+
+dood "git push origin :baz                                                # delete remote 'baz'"
+dood "git remote show origin                                              # peek remote"
+dood "git log --oneline --graph --decorate --all"
+
+dood "git push origin baz                                                 # push 'baz'"
+dood "git branch -d baz                                                   # delete local 'baz'"
+dood "git remote show origin                                              # peek remote"
+dood "git log --oneline --graph --decorate --all"
+
+dood "git checkout --track origin/baz                                     # track 'origin/baz'"
+dood "git log --oneline --graph --decorate --all"
+
+dood "git checkout master                                                 # switch to branch 'master'"
+dood "git branch -d baz                                                   # delete local 'baz'"
+dood "git log --oneline --graph --decorate --all"
+
+dood "git checkout -b baz origin/baz                                      # switch to new tracking branch 'baz'"
+dood "git log --oneline --graph --decorate --all"
+
+dood "git checkout master                                                 # switch to branch 'master'"
+
+dood "git branch -d baz                                                   # delete local 'baz'"
+dood "git remote show origin                                              # peek remote"
+dood "git log --oneline --graph --decorate --all                          # peek local"
+
+dood "git push origin :baz                                                # delete remote 'baz'"
+dood "git remote show origin                                              # peek remote"
+dood "git log --oneline --graph --decorate --all                          # peek local"
 
 dood "======================================================================"
 
