@@ -5,6 +5,7 @@ bannercolor="\033[32m"
 cmdcolor="\033[36m"
 commentcolor="\033[1;35m"
 sepcolor="\033[37m"
+infocolor="\033[1;33m"
 errcolor="\033[1;31m"
 nocolor="\033[0m"
 
@@ -37,6 +38,23 @@ dood() {
 	cmd1=${cmd##*>}
 	if [ "$cmd" == "$cmd0" ]; then
 	    $cmd
+	    # let's check the return value (note: ``diff'', ``git merge'' and ``git reset HEAD'' are excluded)
+	    retval=$?
+	    if [ $retval -ne 0 ]; then
+		echo -e $infocolor"\nCommand "$nocolor$errcolor$cmd$nocolor$infocolor"returns non-zero: "$nocolor$errcolor$retval$nocolor$infocolor"."$nocolor
+		#if [ "$firstword" == "diff" ] || [ "${line:0:9}" == "git merge" ]; then
+		if [ "$firstword" == "diff" ] || [ "${line:0:9}" == "git merge" ] || [ "${line:0:14}" == "git reset HEAD" ]; then
+		    echo -e $infocolor"It doesn't matter. Let's continue.\n"$nocolor
+		else
+		    echo -n -e $infocolor"Press ! to quit, any other key to continue: "$nocolor
+		    read ans
+		    if [ "$ans" == "!" ]; then
+			exit 100
+		    else
+			echo -e $infocolor"OK, here we go.\n"$nocolor
+		    fi
+		fi
+	    fi
 	else
 	    $cmd0 >> $cmd1
 	fi
@@ -256,12 +274,57 @@ dood "git remote show origin                                              # peek
 dood "git log --oneline --graph --decorate --all                          # peek local"
 
 dood "======================================================================"
+dood "## more about undo"
 
 dood "git checkout `cat /tmp/gitdoodle.bad`                                                # remember the undone push? the commit's never gone"
-dood "git log --oneline --graph --decorate --all"
+dood "git log --oneline --graph --decorate --all                          # ya it's still here"
 dood "cat foo.txt                                                         # we see the bad line again"
 dood "git checkout master                                                 # switch back to 'master'"
 dood "cat foo.txt                                                         # the latest foo.txt"
+
+for opt in "--hard" "--soft"; do
+    echo doodle.git.`git log --pretty=oneline | head -n 1 | cut -c1-7`-`head -c10 /dev/urandom | sha1sum | head -c 3` > /tmp/gitdoodle.bakname
+    dood "cp -r ../remote/doodle.git ../remote/`cat /tmp/gitdoodle.bakname`"
+
+    dood "echo blah >> foo.txt                                                # modify foo.txt"
+    dood "cat foo.txt"
+    dood "git commit -a -m blah                                               # commit blah"
+    dood "git log --oneline --graph --decorate --all"
+    git log --oneline -1 | cut -d' ' -f1 > /tmp/gitdoodle.bad
+
+    dood "git reset $opt HEAD^                                              # undo commit"
+    dood "git status"
+    if [ "$opt" == "--soft" ]; then
+	dood "git reset HEAD foo.txt                                              # unstage foo.txt"
+	dood "git checkout -- foo.txt                                             # discard changes of foo.txt"
+	dood "git status"
+    fi
+    dood "git log --oneline --graph --decorate --all"
+
+    dood "diff -r ../remote/`cat /tmp/gitdoodle.bakname` ../remote/doodle.git       # difference before and after push&unpush"
+
+    if [ "$opt" == "--hard" ]; then
+	x="e"
+    else
+	x="f"
+    fi
+
+    dood "echo $x >> foo.txt                                                   # modify foo.txt"
+    dood "cat foo.txt"
+    dood "git commit -a -m $x                                                  # commit $x"
+    dood "git log --oneline --graph --decorate --all"
+
+    dood "git checkout `cat /tmp/gitdoodle.bad`                                                # the commit's undone, but it's not really gone"
+    dood "git log --oneline --graph --decorate --all"
+    dood "cat foo.txt                                                         # we see it again"
+    dood "git checkout master                                                 # switch back to 'master'"
+    dood "git gc                                                              # even 'gc' cannot remove it"
+    dood "git checkout `cat /tmp/gitdoodle.bad`                                                # still here"
+    dood "git log --oneline --graph --decorate --all                          # yes, it's still here"
+    dood "cat foo.txt                                                         # ah, we see it again"
+    dood "git checkout master                                                 # switch back to 'master'"
+    dood "git log --oneline --graph --decorate --all"
+done
 
 dood "======================================================================"
 
