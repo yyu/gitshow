@@ -61,6 +61,7 @@ dood "git init --bare remote/doodle.git"
 dood "pushd local"
 
 dood "======================================================================"
+dood "## can we undo a push?"
 
 dood "pwd"
 
@@ -93,6 +94,7 @@ dood "git add foo.txt"
 dood "git commit -m bad                                                   # commit bad"
 dood "git push                                                            # push"
 dood "git log --pretty=oneline"
+git log --oneline -1 | cut -d' ' -f1 > /tmp/gitdoodle.bad
 
 dood "git push -f origin HEAD^:master                                     # undo push"
 dood "git st"
@@ -105,6 +107,16 @@ dood "git st"
 dood "git log --pretty=oneline"
 
 dood "diff -r ../remote/`cat /tmp/gitdoodle.bakname` ../remote/doodle.git       # difference before and after push&unpush"
+
+dood "git checkout `cat /tmp/gitdoodle.bad`                                                # the commit's undone, but it's not really gone"
+dood "git log --oneline --graph --decorate --all"
+dood "cat foo.txt                                                         # we see the bad line again"
+dood "git checkout master                                                 # switch back to 'master'"
+dood "git gc                                                              # even 'gc' cannot remove it"
+dood "git checkout `cat /tmp/gitdoodle.bad`                                                # still here"
+dood "git log --oneline --graph --decorate --all                          # yes, it's still here"
+dood "cat foo.txt                                                         # ah, we see the bad line again"
+dood "git checkout master                                                 # switch back to 'master'"
 
 # echo doodle.git.`git log --pretty=oneline | head -n 1 | cut -c1-7`-`head -c10 /dev/urandom | sha1sum | head -c 3` > /tmp/gitdoodle.bakname
 # dood "cp -r ../remote/doodle.git ../remote/`cat /tmp/gitdoodle.bakname`"
@@ -138,8 +150,8 @@ dood "git push                                                            # push
 
 dood "git log --pretty=oneline"
 
-################################################################################
-# manipulate branches
+dood "======================================================================"
+dood "## branching"
 
 dood "git checkout -b bar                                                 # swith to a new branch 'bar' (== git branch bar && git checkout bar)"
 
@@ -242,6 +254,14 @@ dood "git log --oneline --graph --decorate --all                          # peek
 dood "git push origin :baz                                                # delete remote 'baz'"
 dood "git remote show origin                                              # peek remote"
 dood "git log --oneline --graph --decorate --all                          # peek local"
+
+dood "======================================================================"
+
+dood "git checkout `cat /tmp/gitdoodle.bad`                                                # remember the undone push? the commit's never gone"
+dood "git log --oneline --graph --decorate --all"
+dood "cat foo.txt                                                         # we see the bad line again"
+dood "git checkout master                                                 # switch back to 'master'"
+dood "cat foo.txt                                                         # the latest foo.txt"
 
 dood "======================================================================"
 
