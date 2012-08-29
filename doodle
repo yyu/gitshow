@@ -15,50 +15,50 @@ dood() {
 
     flag=0
     for w in /bin/rm git pwd pushd popd echo touch cd cp diff mkdir cat sed; do
-	if [ "$firstword" == "$w" ]; then
-	    flag=1
-	fi
+        if [ "$firstword" == "$w" ]; then
+            flag=1
+        fi
     done
 
     if [ "$flag" -eq 1 ]; then
-	echo -e $sepcolor"----------------------------------------------------------------------"$nocolor
+        echo -e $sepcolor"----------------------------------------------------------------------"$nocolor
 
-	# handle comments
-	cmdall="$*"
-	cmd=${cmdall%%#*}
-	comment=${cmdall##*#}
-	if [ "$cmdall" == "$cmd" ]; then
-	    echo -e $promptcolor"$ "$nocolor$cmdcolor"$cmd"$nocolor
-	else
-	    echo -e $promptcolor"$ "$nocolor$cmdcolor"$cmd"$commentcolor"#$comment"$nocolor
-	fi
+        # handle comments
+        cmdall="$*"
+        cmd=${cmdall%%#*}
+        comment=${cmdall##*#}
+        if [ "$cmdall" == "$cmd" ]; then
+            echo -e $promptcolor"$ "$nocolor$cmdcolor"$cmd"$nocolor
+        else
+            echo -e $promptcolor"$ "$nocolor$cmdcolor"$cmd"$commentcolor"#$comment"$nocolor
+        fi
 
-	eval "$cmd"
-	# let's check the return value (note: ``diff'', ``git merge'', ``git reset HEAD'' and ``git rebase'' are excluded)
-	retval=$?
-	if [ $retval -ne 0 ]; then
-	    echo -e $infocolor"\nCommand "$nocolor$errcolor$cmd$nocolor$infocolor"returns non-zero: "$nocolor$errcolor$retval$nocolor$infocolor"."$nocolor
-	    #if [ "$firstword" == "diff" ] || [ "${line:0:9}" == "git merge" ]; then
-	    if [ "$firstword" == "diff" ] || [ "${line:0:9}" == "git merge" ] || [ "${line:0:14}" == "git reset HEAD" ] || [ "${line:0:10}" == "git rebase" ]; then
-		#echo -e $infocolor"It doesn't matter. Let's continue.\n"$nocolor
-		echo
-	    else
-		echo -n -e $infocolor"Press ! to quit, any other key to continue: "$nocolor
-		read ans
-		if [ "$ans" == "!" ]; then
-		    exit 100
-		else
-		    echo -e $infocolor"OK, here we go.\n"$nocolor
-		fi
-	    fi
-	fi
+        eval "$cmd"
+        # let's check the return value (note: ``diff'', ``git merge'', ``git reset HEAD'' and ``git rebase'' are excluded)
+        retval=$?
+        if [ $retval -ne 0 ]; then
+            echo -e $infocolor"\nCommand "$nocolor$errcolor$cmd$nocolor$infocolor"returns non-zero: "$nocolor$errcolor$retval$nocolor$infocolor"."$nocolor
+            #if [ "$firstword" == "diff" ] || [ "${line:0:9}" == "git merge" ]; then
+            if [ "$firstword" == "diff" ] || [ "${line:0:9}" == "git merge" ] || [ "${line:0:14}" == "git reset HEAD" ] || [ "${line:0:10}" == "git rebase" ]; then
+                #echo -e $infocolor"It doesn't matter. Let's continue.\n"$nocolor
+                echo
+            else
+                echo -n -e $infocolor"Press ! to quit, any other key to continue: "$nocolor
+                read ans
+                if [ "$ans" == "!" ]; then
+                    exit 100
+                else
+                    echo -e $infocolor"OK, here we go.\n"$nocolor
+                fi
+            fi
+        fi
     else
-	if [ "${line:0:2}" == "##" ] || [ "${line:0:2}" == "==" ]; then
+        if [ "${line:0:2}" == "##" ] || [ "${line:0:2}" == "==" ]; then
             echo -e $bannercolor"$*"$nocolor
-	else
+        else
             echo -e "Error: "$errcolor$line$nocolor
-	    exit 100
-	fi
+            exit 100
+        fi
     fi
 }
 
@@ -69,6 +69,10 @@ dood "/bin/rm -rf local/.git local/foo.txt local/bar.txt local/baz.txt"
 
 dood "mkdir remote"
 dood "git init --bare remote/doodle.git"
+
+if [ ! -d local ]; then
+    dood "mkdir local"
+fi
 
 dood "pushd local"
 
@@ -289,18 +293,18 @@ for opt in "--hard" "--soft"; do
     dood "git reset $opt HEAD^                                              # undo commit"
     dood "git status"
     if [ "$opt" == "--soft" ]; then
-	dood "git reset HEAD foo.txt                                              # unstage foo.txt"
-	dood "git checkout -- foo.txt                                             # discard changes of foo.txt"
-	dood "git status"
+        dood "git reset HEAD foo.txt                                              # unstage foo.txt"
+        dood "git checkout -- foo.txt                                             # discard changes of foo.txt"
+        dood "git status"
     fi
     dood "git log --oneline --graph --decorate --all"
 
     dood "diff -r ../remote/`cat /tmp/gitdoodle.bakname` ../remote/doodle.git       # difference before and after push&unpush"
 
     if [ "$opt" == "--hard" ]; then
-	x="e"
+        x="e"
     else
-	x="f"
+        x="f"
     fi
 
     dood "echo $x >> foo.txt                                                   # modify foo.txt"
